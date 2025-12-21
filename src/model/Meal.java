@@ -5,8 +5,8 @@ import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Set;
 
-public class Meal {
-
+public class Meal implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
     private final String name;
     private final Category category;
     private final Place place;                 // HOME / OUTSIDE / ANY (means works for both)

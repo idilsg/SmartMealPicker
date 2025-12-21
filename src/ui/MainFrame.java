@@ -11,6 +11,7 @@ import java.awt.*;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.ArrayList;
+import persistence.FavoriteManager;
 
 public class MainFrame extends JFrame {
 
@@ -20,7 +21,7 @@ public class MainFrame extends JFrame {
 
     // JTable satırı -> hangi Meal?
     private java.util.List<Meal> currentResults;
-
+    private List<Meal> favorites;
 
     // ---- Filters (we will read these later) ----
     private JRadioButton rbHome;
@@ -56,6 +57,8 @@ public class MainFrame extends JFrame {
         splitPane.setResizeWeight(0.38); // left panel %38
         splitPane.setDividerSize(8);
         add(splitPane, BorderLayout.CENTER);
+
+        favorites = FavoriteManager.loadFavorites();
     }
 
     private JComponent createHeader() {
@@ -392,9 +395,25 @@ public class MainFrame extends JFrame {
 
         Meal selected = currentResults.get(row);
 
+        // Prevent duplicates by name (simple + works without overriding equals/hashCode)
+        for (Meal m : favorites) {
+            if (m.getName().equalsIgnoreCase(selected.getName())) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "This meal is already in your favorites.",
+                        "Already added",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+                return;
+            }
+        }
+
+        favorites.add(selected);
+        FavoriteManager.saveFavorites(favorites);
+
         JOptionPane.showMessageDialog(
                 this,
-                "Added to favorites (placeholder):\n" + selected,
+                "Added to favorites:\n" + selected.getName(),
                 "Favorites",
                 JOptionPane.INFORMATION_MESSAGE
         );
