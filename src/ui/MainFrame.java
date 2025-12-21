@@ -1,14 +1,20 @@
 package ui;
 
+import data.*;
+import model.*;
+
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 
+import java.util.EnumSet;
+import java.util.List;
+
 public class MainFrame extends JFrame {
 
     // ---- Right panel: results ----
-    private DefaultListModel<String> resultsModel;
-    private JList<String> resultsList;
+    private DefaultListModel<Meal> resultsModel;
+    private JList<Meal> resultsList;
 
     // ---- Filters (we will read these later) ----
     private JRadioButton rbHome;
@@ -259,6 +265,7 @@ public class MainFrame extends JFrame {
 
         resultsModel = new DefaultListModel<>();
         resultsList = new JList<>(resultsModel);
+
         resultsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         JScrollPane scroll = new JScrollPane(resultsList);
@@ -287,15 +294,51 @@ public class MainFrame extends JFrame {
             return;
         }
 
-        // 2) For now: show dummy results to prove UI works
+        // 2) Read UI selections
+        Place selectedPlace = getSelectedPlace();
+        Category selectedCategory = getSelectedCategory();
+        int maxMinutes = (Integer) spMaxPrepMinutes.getValue();
+
+        EnumSet<BudgetLevel> allowedBudgets = getAllowedBudgetLevels();     // empty => any
+        EnumSet<CalorieLevel> allowedCalories = getAllowedCalorieLevels();  // empty => any
+        EnumSet<DietTag> requiredDietTags = getRequiredDietTags();          // empty => no restriction
+        EnumSet<TasteTag> desiredTasteTags = getDesiredTasteTags();         // empty => ignore
+
+        // 3) Filter meals
+        List<Meal> allMeals = MealData.getDefaultMeals();
+
         resultsModel.clear();
-        resultsModel.addElement("Example: Chicken Wrap (Main dish, Medium budget)");
-        resultsModel.addElement("Example: Veggie Stir Fry (Main dish, Low budget)");
-        resultsModel.addElement("Example: Fruit Yogurt Bowl (Snack, Low calories)");
+
+        for (Meal meal : allMeals) {
+            if (!matchesPlace(meal, selectedPlace)) continue;
+            if (!matchesCategory(meal, selectedCategory)) continue;
+            if (meal.getPrepMinutes() > maxMinutes) continue;
+
+            if (!allowedBudgets.isEmpty() && !allowedBudgets.contains(meal.getBudgetLevel())) continue;
+            if (!allowedCalories.isEmpty() && !allowedCalories.contains(meal.getCalorieLevel())) continue;
+
+            // Dietary: if user selected restrictions, meal must support ALL of them
+            if (!requiredDietTags.isEmpty() && !meal.getDietTags().containsAll(requiredDietTags)) continue;
+
+            // Taste: if user selected taste tags, meal should match AT LEAST ONE
+            if (!desiredTasteTags.isEmpty() && !hasAnyTaste(meal, desiredTasteTags)) continue;
+
+            resultsModel.addElement(meal);
+        }
+
+        if (resultsModel.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "No meals matched your preferences.\nTry relaxing some filters.",
+                    "No results",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        }
     }
 
     private void onAddToFavorites() {
-        String selected = resultsList.getSelectedValue();
+        Meal selected = resultsList.getSelectedValue();
+
         if (selected == null) {
             JOptionPane.showMessageDialog(
                     this,
@@ -346,6 +389,77 @@ public class MainFrame extends JFrame {
         row.add(cb);
         row.add(hint);
         return row;
+    }
+
+    private Place getSelectedPlace() {
+        if (rbHome.isSelected()) return Place.HOME;
+        if (rbOutside.isSelected()) return Place.OUTSIDE;
+        return Place.ANY;
+    }
+
+    private Category getSelectedCategory() {
+        String s = (String) cbCategory.getSelectedItem();
+        if (s == null) return Category.ANY;
+
+        return switch (s) {
+            case "Main dish" -> Category.MAIN_DISH;
+            case "Dessert" -> Category.DESSERT;
+            case "Snack" -> Category.SNACK;
+            case "Drink" -> Category.DRINK;
+            case "Any" -> Category.ANY;
+            default -> Category.ANY;
+        };
+    }
+
+    private EnumSet<BudgetLevel> getAllowedBudgetLevels() {
+        EnumSet<BudgetLevel> set = EnumSet.noneOf(BudgetLevel.class);
+        if (cbBudgetLow.isSelected()) set.add(BudgetLevel.LOW);
+        if (cbBudgetMed.isSelected()) set.add(BudgetLevel.MEDIUM);
+        if (cbBudgetHigh.isSelected()) set.add(BudgetLevel.HIGH);
+        return set; // empty => any
+    }
+
+    private EnumSet<CalorieLevel> getAllowedCalorieLevels() {
+        EnumSet<CalorieLevel> set = EnumSet.noneOf(CalorieLevel.class);
+        if (cbCalLow.isSelected()) set.add(CalorieLevel.LOW);
+        if (cbCalMed.isSelected()) set.add(CalorieLevel.MEDIUM);
+        if (cbCalHigh.isSelected()) set.add(CalorieLevel.HIGH);
+        return set; // empty => any
+    }
+
+    private EnumSet<DietTag> getRequiredDietTags() {
+        EnumSet<DietTag> set = EnumSet.noneOf(DietTag.class);
+        if (cbVegan.isSelected()) set.add(DietTag.VEGAN);
+        if (cbVegetarian.isSelected()) set.add(DietTag.VEGETARIAN);
+        if (cbGlutenFree.isSelected()) set.add(DietTag.GLUTEN_FREE);
+        return set; // empty => no restriction
+    }
+
+    private EnumSet<TasteTag> getDesiredTasteTags() {
+        EnumSet<TasteTag> set = EnumSet.noneOf(TasteTag.class);
+        if (cbSpicy.isSelected()) set.add(TasteTag.SPICY);
+        if (cbSweet.isSelected()) set.add(TasteTag.SWEET);
+        if (cbSour.isSelected()) set.add(TasteTag.SOUR);
+        if (cbSavory.isSelected()) set.add(TasteTag.SAVORY);
+        return set; // empty => ignore
+    }
+
+    private boolean matchesPlace(Meal meal, Place selectedPlace) {
+        if (selectedPlace == Place.ANY) return true;
+        // meal.place == ANY means it works for both
+        return meal.getPlace() == selectedPlace || meal.getPlace() == Place.ANY;
+    }
+
+    private boolean matchesCategory(Meal meal, Category selectedCategory) {
+        if (selectedCategory == Category.ANY) return true;
+        return meal.getCategory() == selectedCategory;
+    }
+
+    private boolean hasAnyTaste(Meal meal, EnumSet<TasteTag> desired) {
+        for (TasteTag t : desired) {
+            if (meal.getTasteTags().contains(t)) return true;
+        }
+        return false;
     }
 
     public static void main(String[] args) {

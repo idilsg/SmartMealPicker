@@ -83,4 +83,9 @@ public class Meal {
         String s = e.name().toLowerCase().replace('_', ' ');
         return Character.toUpperCase(s.charAt(0)) + s.substring(1);
     }
+
+    @Override
+    public String toString() {
+        return toDisplayString();
+    }
 }
