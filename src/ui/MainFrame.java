@@ -5,16 +5,22 @@ import model.*;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.ArrayList;
 
 public class MainFrame extends JFrame {
 
     // ---- Right panel: results ----
-    private DefaultListModel<Meal> resultsModel;
-    private JList<Meal> resultsList;
+    private JTable resultsTable;
+    private javax.swing.table.DefaultTableModel resultsTableModel;
+
+    // JTable satırı -> hangi Meal?
+    private java.util.List<Meal> currentResults;
+
 
     // ---- Filters (we will read these later) ----
     private JRadioButton rbHome;
@@ -132,7 +138,6 @@ public class MainFrame extends JFrame {
 
         return p;
     }
-
 
     private JPanel createCategoryPanel() {
         JPanel p = titledPanel("Category *");
@@ -263,12 +268,35 @@ public class MainFrame extends JFrame {
         title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
         right.add(title, BorderLayout.NORTH);
 
-        resultsModel = new DefaultListModel<>();
-        resultsList = new JList<>(resultsModel);
+        // Columns
+        String[] cols = {"Name", "Category", "Place", "Prep (min)", "Budget", "Calories"};
 
-        resultsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        resultsTableModel = new javax.swing.table.DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // read-only table
+            }
+        };
 
-        JScrollPane scroll = new JScrollPane(resultsList);
+        resultsTable = new JTable(resultsTableModel);
+        resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        resultsTable.setRowHeight(22);
+
+        // Enable horizontal scroll
+        resultsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
+        // Optional: set some reasonable column widths
+        resultsTable.getColumnModel().getColumn(0).setPreferredWidth(220); // Name
+        resultsTable.getColumnModel().getColumn(1).setPreferredWidth(120); // Category
+        resultsTable.getColumnModel().getColumn(2).setPreferredWidth(90);  // Place
+        resultsTable.getColumnModel().getColumn(3).setPreferredWidth(90);  // Prep
+        resultsTable.getColumnModel().getColumn(4).setPreferredWidth(90);  // Budget
+        resultsTable.getColumnModel().getColumn(5).setPreferredWidth(90);  // Calories
+
+        JScrollPane scroll = new JScrollPane(resultsTable,
+                ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+        );
         right.add(scroll, BorderLayout.CENTER);
 
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
@@ -299,16 +327,19 @@ public class MainFrame extends JFrame {
         Category selectedCategory = getSelectedCategory();
         int maxMinutes = (Integer) spMaxPrepMinutes.getValue();
 
-        EnumSet<BudgetLevel> allowedBudgets = getAllowedBudgetLevels();     // empty => any
-        EnumSet<CalorieLevel> allowedCalories = getAllowedCalorieLevels();  // empty => any
-        EnumSet<DietTag> requiredDietTags = getRequiredDietTags();          // empty => no restriction
-        EnumSet<TasteTag> desiredTasteTags = getDesiredTasteTags();         // empty => ignore
+        EnumSet<BudgetLevel> allowedBudgets = getAllowedBudgetLevels();      // empty => any
+        EnumSet<CalorieLevel> allowedCalories = getAllowedCalorieLevels();   // empty => any
+        EnumSet<DietTag> requiredDietTags = getRequiredDietTags();           // empty => no restriction
+        EnumSet<TasteTag> desiredTasteTags = getDesiredTasteTags();          // empty => ignore
 
-        // 3) Filter meals
+        // 3) Load all meals
         List<Meal> allMeals = MealData.getDefaultMeals();
 
-        resultsModel.clear();
+        // 4) Clear previous results (table + mapping list)
+        resultsTableModel.setRowCount(0);
+        currentResults = new java.util.ArrayList<>();
 
+        // 5) Filter meals and fill table
         for (Meal meal : allMeals) {
             if (!matchesPlace(meal, selectedPlace)) continue;
             if (!matchesCategory(meal, selectedCategory)) continue;
@@ -323,10 +354,21 @@ public class MainFrame extends JFrame {
             // Taste: if user selected taste tags, meal should match AT LEAST ONE
             if (!desiredTasteTags.isEmpty() && !hasAnyTaste(meal, desiredTasteTags)) continue;
 
-            resultsModel.addElement(meal);
+            // Passed all filters -> add to results
+            currentResults.add(meal);
+
+            resultsTableModel.addRow(new Object[]{
+                    meal.getName(),
+                    meal.getCategory(),
+                    meal.getPlace(),
+                    meal.getPrepMinutes(),
+                    meal.getBudgetLevel(),
+                    meal.getCalorieLevel()
+            });
         }
 
-        if (resultsModel.isEmpty()) {
+        // 6) No results message
+        if (currentResults.isEmpty()) {
             JOptionPane.showMessageDialog(
                     this,
                     "No meals matched your preferences.\nTry relaxing some filters.",
@@ -337,17 +379,18 @@ public class MainFrame extends JFrame {
     }
 
     private void onAddToFavorites() {
-        Meal selected = resultsList.getSelectedValue();
-
-        if (selected == null) {
+        int row = resultsTable.getSelectedRow();
+        if (row < 0 || currentResults == null || row >= currentResults.size()) {
             JOptionPane.showMessageDialog(
                     this,
-                    "Please select a meal from the list first.",
+                    "Please select a meal from the table first.",
                     "No selection",
                     JOptionPane.INFORMATION_MESSAGE
             );
             return;
         }
+
+        Meal selected = currentResults.get(row);
 
         JOptionPane.showMessageDialog(
                 this,
