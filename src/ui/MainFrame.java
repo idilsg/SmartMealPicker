@@ -372,7 +372,6 @@ public class MainFrame extends JFrame {
         }
     }
 
-
     private void onAddToFavorites() {
         int row = resultsTable.getSelectedRow();
         if (row < 0 || currentResults == null || row >= currentResults.size()) {
