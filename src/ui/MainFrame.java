@@ -37,6 +37,8 @@ public class MainFrame extends JFrame {
     private JCheckBox cbVegan, cbVegetarian, cbGlutenFree;
     private JCheckBox cbSpicy, cbSweet, cbSour, cbSavory;
 
+    private final service.MealRecommender recommender = new service.MealRecommender();
+
     public MainFrame() {
         setTitle("What Should I Eat?");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -314,7 +316,6 @@ public class MainFrame extends JFrame {
 
     // ---------------- Actions (temporary placeholders) ----------------
     private void onSuggestMeals() {
-        // 1) Validate category selection
         if (cbCategory.getSelectedIndex() == 0) {
             JOptionPane.showMessageDialog(
                     this,
@@ -325,41 +326,32 @@ public class MainFrame extends JFrame {
             return;
         }
 
-        // 2) Read UI selections
         Place selectedPlace = getSelectedPlace();
         Category selectedCategory = getSelectedCategory();
         int maxMinutes = (Integer) spMaxPrepMinutes.getValue();
 
-        EnumSet<BudgetLevel> allowedBudgets = getAllowedBudgetLevels();      // empty => any
-        EnumSet<CalorieLevel> allowedCalories = getAllowedCalorieLevels();   // empty => any
-        EnumSet<DietTag> requiredDietTags = getRequiredDietTags();           // empty => no restriction
-        EnumSet<TasteTag> desiredTasteTags = getDesiredTasteTags();          // empty => ignore
+        EnumSet<BudgetLevel> allowedBudgets = getAllowedBudgetLevels();
+        EnumSet<CalorieLevel> allowedCalories = getAllowedCalorieLevels();
+        EnumSet<DietTag> requiredDietTags = getRequiredDietTags();
+        EnumSet<TasteTag> desiredTasteTags = getDesiredTasteTags();
 
-        // 3) Load all meals
-        List<Meal> allMeals = MealData.getDefaultMeals();
-
-        // 4) Clear previous results (table + mapping list)
         resultsTableModel.setRowCount(0);
-        currentResults = new java.util.ArrayList<>();
+        currentResults = new ArrayList<>();
 
-        // 5) Filter meals and fill table
-        for (Meal meal : allMeals) {
-            if (!matchesPlace(meal, selectedPlace)) continue;
-            if (!matchesCategory(meal, selectedCategory)) continue;
-            if (meal.getPrepMinutes() > maxMinutes) continue;
+        service.UserPreferences p = new service.UserPreferences();
+        p.place = selectedPlace;
+        p.category = selectedCategory;
+        p.maxPrepMinutes = maxMinutes;
+        p.allowedBudgets = allowedBudgets;
+        p.allowedCalories = allowedCalories;
+        p.requiredDietTags = requiredDietTags;
+        p.desiredTasteTags = desiredTasteTags;
 
-            if (!allowedBudgets.isEmpty() && !allowedBudgets.contains(meal.getBudgetLevel())) continue;
-            if (!allowedCalories.isEmpty() && !allowedCalories.contains(meal.getCalorieLevel())) continue;
+        List<Meal> results =
+                recommender.recommend(MealData.getDefaultMeals(), p);
 
-            // Dietary: if user selected restrictions, meal must support ALL of them
-            if (!requiredDietTags.isEmpty() && !meal.getDietTags().containsAll(requiredDietTags)) continue;
-
-            // Taste: if user selected taste tags, meal should match AT LEAST ONE
-            if (!desiredTasteTags.isEmpty() && !hasAnyTaste(meal, desiredTasteTags)) continue;
-
-            // Passed all filters -> add to results
+        for (Meal meal : results) {
             currentResults.add(meal);
-
             resultsTableModel.addRow(new Object[]{
                     meal.getName(),
                     meal.getCategory(),
@@ -370,7 +362,6 @@ public class MainFrame extends JFrame {
             });
         }
 
-        // 6) No results message
         if (currentResults.isEmpty()) {
             JOptionPane.showMessageDialog(
                     this,
@@ -380,6 +371,7 @@ public class MainFrame extends JFrame {
             );
         }
     }
+
 
     private void onAddToFavorites() {
         int row = resultsTable.getSelectedRow();
