@@ -208,7 +208,7 @@ public class MealData {
                 EnumSet.of(DietTag.VEGAN, DietTag.GLUTEN_FREE),
                 EnumSet.of(TasteTag.SAVORY)
         ));
-        
+
         return meals;
     }
 }

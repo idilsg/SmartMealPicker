@@ -5,7 +5,6 @@ import model.*;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
 import java.util.EnumSet;
@@ -14,26 +13,19 @@ import java.util.ArrayList;
 import persistence.FavoriteManager;
 
 public class MainFrame extends JFrame {
-
-    // ---- Right panel: results ----
     private JTable resultsTable;
     private javax.swing.table.DefaultTableModel resultsTableModel;
-
-    // JTable satırı -> hangi Meal?
     private java.util.List<Meal> currentResults;
     private List<Meal> favorites;
 
-    // ---- Filters (we will read these later) ----
     private JRadioButton rbHome;
     private JRadioButton rbOutside;
     private JRadioButton rbAnyPlace;
-
     private JComboBox<String> cbCategory;
     private JSpinner spMaxPrepMinutes;
 
     private JCheckBox cbBudgetLow, cbBudgetMed, cbBudgetHigh;
     private JCheckBox cbCalLow, cbCalMed, cbCalHigh;
-
     private JCheckBox cbVegan, cbVegetarian, cbGlutenFree;
     private JCheckBox cbSpicy, cbSweet, cbSour, cbSavory;
 
@@ -45,18 +37,16 @@ public class MainFrame extends JFrame {
         setSize(1000, 650);
         setLocationRelativeTo(null);
 
-        // Main layout
+        // main layout
         setLayout(new BorderLayout(10, 10));
-
-        // Optional: simple header
         add(createHeader(), BorderLayout.NORTH);
 
-        // Split pane: left filters, right results
+        // left filters, right results
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                 createFiltersPanel(),
                 createResultsPanel()
         );
-        splitPane.setResizeWeight(0.38); // left panel %38
+        splitPane.setResizeWeight(0.38);
         splitPane.setDividerSize(8);
         add(splitPane, BorderLayout.CENTER);
 
@@ -78,7 +68,7 @@ public class MainFrame extends JFrame {
         return header;
     }
 
-    // ---------------- LEFT: Filters ----------------
+    // filters (left side of the main page)
     private JComponent createFiltersPanel() {
         JPanel container = new JPanel();
         container.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -110,10 +100,10 @@ public class MainFrame extends JFrame {
         btnSuggest.addActionListener(e -> onSuggestMeals());
         container.add(btnSuggest);
 
-        // Add filler so everything stays at top
+        // everything will stay on top
         container.add(Box.createVerticalGlue());
 
-        // Put it into a scroll pane in case screen is small
+        // if the screen is too small: scroll
         JScrollPane scroll = new JScrollPane(container);
         scroll.setBorder(null);
         scroll.getVerticalScrollBar().setUnitIncrement(14);
@@ -171,11 +161,9 @@ public class MainFrame extends JFrame {
         JPanel p = titledPanel("Max preparation time");
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
 
-        // Spinner: 5..180 step 5, default 30
         SpinnerNumberModel model = new SpinnerNumberModel(30, 5, 180, 5);
         spMaxPrepMinutes = new JSpinner(model);
 
-        // Make spinner look nicer in BoxLayout
         spMaxPrepMinutes.setMaximumSize(new Dimension(120, spMaxPrepMinutes.getPreferredSize().height));
 
         JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
@@ -264,7 +252,7 @@ public class MainFrame extends JFrame {
         return p;
     }
 
-    // ---------------- RIGHT: Results ----------------
+    // results (right side of the main page)
     private JComponent createResultsPanel() {
         JPanel right = new JPanel(new BorderLayout(10, 10));
         right.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -279,7 +267,7 @@ public class MainFrame extends JFrame {
         resultsTableModel = new javax.swing.table.DefaultTableModel(cols, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // read-only table
+                return false;
             }
         };
 
@@ -287,16 +275,15 @@ public class MainFrame extends JFrame {
         resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         resultsTable.setRowHeight(22);
 
-        // Enable horizontal scroll
+        // enable horizontal scroll
         resultsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
-        // Optional: set some reasonable column widths
         resultsTable.getColumnModel().getColumn(0).setPreferredWidth(220); // Name
         resultsTable.getColumnModel().getColumn(1).setPreferredWidth(120); // Category
-        resultsTable.getColumnModel().getColumn(2).setPreferredWidth(90);  // Place
-        resultsTable.getColumnModel().getColumn(3).setPreferredWidth(90);  // Prep
-        resultsTable.getColumnModel().getColumn(4).setPreferredWidth(90);  // Budget
-        resultsTable.getColumnModel().getColumn(5).setPreferredWidth(90);  // Calories
+        resultsTable.getColumnModel().getColumn(2).setPreferredWidth(90); // Place
+        resultsTable.getColumnModel().getColumn(3).setPreferredWidth(90); // Prep
+        resultsTable.getColumnModel().getColumn(4).setPreferredWidth(90); // Budget
+        resultsTable.getColumnModel().getColumn(5).setPreferredWidth(90); // Calories
 
         JScrollPane scroll = new JScrollPane(resultsTable,
                 ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -314,7 +301,7 @@ public class MainFrame extends JFrame {
         return right;
     }
 
-    // ---------------- Actions (temporary placeholders) ----------------
+    // actions
     private void onSuggestMeals() {
         if (cbCategory.getSelectedIndex() == 0) {
             JOptionPane.showMessageDialog(
@@ -386,7 +373,7 @@ public class MainFrame extends JFrame {
 
         Meal selected = currentResults.get(row);
 
-        // Prevent duplicates by name (simple + works without overriding equals/hashCode)
+        // prevent duplcaites
         for (Meal m : favorites) {
             if (m.getName().equalsIgnoreCase(selected.getName())) {
                 JOptionPane.showMessageDialog(
@@ -410,7 +397,7 @@ public class MainFrame extends JFrame {
         );
     }
 
-    // ---------------- Small UI helpers ----------------
+    // ui helpers/hints
     private JPanel titledPanel(String title) {
         JPanel p = new JPanel();
         p.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -469,7 +456,7 @@ public class MainFrame extends JFrame {
         if (cbBudgetLow.isSelected()) set.add(BudgetLevel.LOW);
         if (cbBudgetMed.isSelected()) set.add(BudgetLevel.MEDIUM);
         if (cbBudgetHigh.isSelected()) set.add(BudgetLevel.HIGH);
-        return set; // empty => any
+        return set; // empty = any
     }
 
     private EnumSet<CalorieLevel> getAllowedCalorieLevels() {
@@ -477,7 +464,7 @@ public class MainFrame extends JFrame {
         if (cbCalLow.isSelected()) set.add(CalorieLevel.LOW);
         if (cbCalMed.isSelected()) set.add(CalorieLevel.MEDIUM);
         if (cbCalHigh.isSelected()) set.add(CalorieLevel.HIGH);
-        return set; // empty => any
+        return set; // empty = any
     }
 
     private EnumSet<DietTag> getRequiredDietTags() {
@@ -485,7 +472,7 @@ public class MainFrame extends JFrame {
         if (cbVegan.isSelected()) set.add(DietTag.VEGAN);
         if (cbVegetarian.isSelected()) set.add(DietTag.VEGETARIAN);
         if (cbGlutenFree.isSelected()) set.add(DietTag.GLUTEN_FREE);
-        return set; // empty => no restriction
+        return set; // empty = no restriction
     }
 
     private EnumSet<TasteTag> getDesiredTasteTags() {
@@ -494,25 +481,7 @@ public class MainFrame extends JFrame {
         if (cbSweet.isSelected()) set.add(TasteTag.SWEET);
         if (cbSour.isSelected()) set.add(TasteTag.SOUR);
         if (cbSavory.isSelected()) set.add(TasteTag.SAVORY);
-        return set; // empty => ignore
-    }
-
-    private boolean matchesPlace(Meal meal, Place selectedPlace) {
-        if (selectedPlace == Place.ANY) return true;
-        // meal.place == ANY means it works for both
-        return meal.getPlace() == selectedPlace || meal.getPlace() == Place.ANY;
-    }
-
-    private boolean matchesCategory(Meal meal, Category selectedCategory) {
-        if (selectedCategory == Category.ANY) return true;
-        return meal.getCategory() == selectedCategory;
-    }
-
-    private boolean hasAnyTaste(Meal meal, EnumSet<TasteTag> desired) {
-        for (TasteTag t : desired) {
-            if (meal.getTasteTags().contains(t)) return true;
-        }
-        return false;
+        return set; // empty = ignore
     }
 
     public static void main(String[] args) {
