@@ -31,8 +31,9 @@ public class MealRecommenderTest {
         prefs = null;
     }
 
+    // it should not return high budget meals
     @Test
-    void budgetLowMedium_shouldNotReturnHighBudgetMeals() {
+    void budgetLowMediumTest() {
         prefs.allowedBudgets = EnumSet.of(BudgetLevel.LOW, BudgetLevel.MEDIUM);
 
         List<Meal> res = recommender.recommend(MealData.getDefaultMeals(), prefs);
@@ -42,8 +43,9 @@ public class MealRecommenderTest {
                 "Should not return HIGH budget meals");
     }
 
+    // it should return only vegan meals
     @Test
-    void veganRequired_shouldReturnOnlyVeganMeals() {
+    void veganRequiredTest() {
         prefs.requiredDietTags = EnumSet.of(DietTag.VEGAN);
 
         List<Meal> res = recommender.recommend(MealData.getDefaultMeals(), prefs);
@@ -53,8 +55,9 @@ public class MealRecommenderTest {
                 "All results must contain VEGAN tag");
     }
 
+    // it should return only spicy meals
     @Test
-    void spicyPreference_shouldReturnOnlySpicyMeals() {
+    void spicyPreferenceTest() {
         prefs.desiredTasteTags = EnumSet.of(TasteTag.SPICY);
 
         List<Meal> res = recommender.recommend(MealData.getDefaultMeals(), prefs);
@@ -64,8 +67,9 @@ public class MealRecommenderTest {
                 "All results must contain SPICY tag");
     }
 
+    // it should filter out longer meals
     @Test
-    void maxPrepTime_shouldFilterOutLongerMeals() {
+    void maxPrepTimeTest() {
         prefs.maxPrepMinutes = 10;
 
         List<Meal> res = recommender.recommend(MealData.getDefaultMeals(), prefs);
@@ -74,8 +78,9 @@ public class MealRecommenderTest {
                 "All results must have prepMinutes <= 10");
     }
 
+    // it should not return home only meals
     @Test
-    void outsidePlace_shouldNotReturnHomeOnlyMeals() {
+    void outsidePlaceTest() {
         prefs.place = Place.OUTSIDE;
 
         List<Meal> res = recommender.recommend(MealData.getDefaultMeals(), prefs);

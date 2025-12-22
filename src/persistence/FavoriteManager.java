@@ -19,8 +19,6 @@ public class FavoriteManager {
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(FILE_NAME))) {
             Object obj = in.readObject();
             if (obj instanceof List<?>) {
-                // unchecked cast is safe enough for our controlled app
-                @SuppressWarnings("unchecked")
                 List<Meal> favorites = (List<Meal>) obj;
                 return favorites;
             }

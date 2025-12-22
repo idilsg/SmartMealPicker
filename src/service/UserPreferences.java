@@ -9,13 +9,13 @@ public class UserPreferences {
     public Category category = Category.ANY;
     public int maxPrepMinutes = 30;
 
-    // empty => any
+    // if its empty = any
     public EnumSet<BudgetLevel> allowedBudgets = EnumSet.noneOf(BudgetLevel.class);
     public EnumSet<CalorieLevel> allowedCalories = EnumSet.noneOf(CalorieLevel.class);
 
-    // empty => no restriction
+    // if its empty = no restriction
     public EnumSet<DietTag> requiredDietTags = EnumSet.noneOf(DietTag.class);
 
-    // empty => ignore
+    // if its empty = ignore
     public EnumSet<TasteTag> desiredTasteTags = EnumSet.noneOf(TasteTag.class);
 }

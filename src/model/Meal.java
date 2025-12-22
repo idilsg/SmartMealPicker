@@ -9,12 +9,12 @@ public class Meal implements java.io.Serializable {
     private static final long serialVersionUID = 1L;
     private final String name;
     private final Category category;
-    private final Place place;                 // HOME / OUTSIDE / ANY (means works for both)
-    private final int prepMinutes;             // preparation time in minutes
-    private final BudgetLevel budgetLevel;     // LOW/MEDIUM/HIGH
-    private final CalorieLevel calorieLevel;   // LOW/MEDIUM/HIGH
-    private final EnumSet<DietTag> dietTags;   // meal supports these diet tags
-    private final EnumSet<TasteTag> tasteTags; // taste profile tags
+    private final Place place; // home, outside, any
+    private final int prepMinutes; // prep time in minutes
+    private final BudgetLevel budgetLevel; // low, medium, high
+    private final CalorieLevel calorieLevel; // low, medium, high
+    private final EnumSet<DietTag> dietTags;
+    private final EnumSet<TasteTag> tasteTags;
 
     public Meal(
             String name,
@@ -25,13 +25,14 @@ public class Meal implements java.io.Serializable {
             CalorieLevel calorieLevel,
             Set<DietTag> dietTags,
             Set<TasteTag> tasteTags
-    ) {
+    )
+    {
         this.name = Objects.requireNonNull(name, "name");
         this.category = Objects.requireNonNull(category, "category");
         this.place = Objects.requireNonNull(place, "place");
 
         if (prepMinutes <= 0) {
-            throw new IllegalArgumentException("prepMinutes must be > 0");
+            throw new IllegalArgumentException("preparation minutes must be greater than 0");
         }
         this.prepMinutes = prepMinutes;
 
@@ -54,18 +55,13 @@ public class Meal implements java.io.Serializable {
     public int getPrepMinutes() { return prepMinutes; }
     public BudgetLevel getBudgetLevel() { return budgetLevel; }
     public CalorieLevel getCalorieLevel() { return calorieLevel; }
-
     public Set<DietTag> getDietTags() {
         return Collections.unmodifiableSet(dietTags);
     }
-
     public Set<TasteTag> getTasteTags() {
         return Collections.unmodifiableSet(tasteTags);
     }
 
-    /**
-     * Nice display string for the results list.
-     */
     public String toDisplayString() {
         return String.format(
                 "%s (%s, %s, %d min, %s budget, %s cal)",
@@ -79,7 +75,7 @@ public class Meal implements java.io.Serializable {
     }
 
     private String pretty(Enum<?> e) {
-        // MAIN_DISH -> Main dish
+        // MAIN_DISH will display as Main dish
         String s = e.name().toLowerCase().replace('_', ' ');
         return Character.toUpperCase(s.charAt(0)) + s.substring(1);
     }
