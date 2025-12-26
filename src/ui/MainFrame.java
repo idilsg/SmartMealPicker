@@ -274,6 +274,7 @@ public class MainFrame extends JFrame {
         resultsTable = new JTable(resultsTableModel);
         resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         resultsTable.setRowHeight(22);
+        resultsTable.setAutoCreateRowSorter(true); // for sorting the table
 
         // enable horizontal scroll
         resultsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
@@ -292,8 +293,14 @@ public class MainFrame extends JFrame {
         right.add(scroll, BorderLayout.CENTER);
 
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+
+        JButton btnQuit = new JButton("Quit");
         JButton btnAddFav = new JButton("Add to Favorites");
+
+        btnQuit.addActionListener(e -> onQuit());
         btnAddFav.addActionListener(e -> onAddToFavorites());
+
+        bottom.add(btnQuit);
         bottom.add(btnAddFav);
 
         right.add(bottom, BorderLayout.SOUTH);
@@ -395,6 +402,12 @@ public class MainFrame extends JFrame {
                 "Favorites",
                 JOptionPane.INFORMATION_MESSAGE
         );
+    }
+
+    private void onQuit() {
+        int quitChoice = JOptionPane.showConfirmDialog(null, "Are you sure?");
+        // 0 = yes, 1 = no, 2 = cancel
+        if (quitChoice == 0) System.exit(-1);
     }
 
     // ui helpers/hints
