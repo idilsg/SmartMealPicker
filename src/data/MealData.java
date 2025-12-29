@@ -9,6 +9,12 @@ import java.util.List;
 public class MealData {
 
     public static List<Meal> getDefaultMeals() {
+        try {
+            return JdbcMealData.loadMealsFromDb();
+        } catch (Exception e) {
+            System.out.println("DB not available, using in-memory dataset: " + e.getMessage());
+        }
+
         List<Meal> meals = new ArrayList<>();
 
         meals.add(new Meal(
