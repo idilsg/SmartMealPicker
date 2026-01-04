@@ -8,5 +8,5 @@ public class DbConfig {
             "jdbc:mysql://localhost:3306/mealdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
 
     public static final String USER = "root";
-    public static final String PASS = "erid0704*";
+    public static final String PASS = "PASSWORD";
 }
