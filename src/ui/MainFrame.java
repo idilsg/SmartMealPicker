@@ -498,6 +498,8 @@ public class MainFrame extends JFrame {
     }
 
     public static void main(String[] args) {
+        data.DbInitializer.init();
+
         SwingUtilities.invokeLater(() -> {
             MainFrame frame = new MainFrame();
             frame.setVisible(true);
