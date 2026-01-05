@@ -1,9 +1,9 @@
-# Smart Meal Picker 🍽️
+# 🍽️ Smart Meal Picker
 
-Smart Meal Picker is a Java desktop application developed for the SE360 Software Engineering course.  
+Smart Meal Picker is a Java desktop application developed for the SE360 Software Engineering course.
 The application helps users decide what to eat based on multiple preferences such as budget, calorie level, preparation time, dietary restrictions, and taste profile.
 
-The project demonstrates the use of core Java concepts, Java Swing for graphical user interface development, and JDBC for database integration.
+The project focuses on applying core Java concepts, object-oriented design, and JDBC-based data access in a simple and practical desktop application.
 
 ---
 
@@ -14,14 +14,14 @@ The project demonstrates the use of core Java concepts, Java Swing for graphical
 - Set a maximum preparation time
 - Filter by budget level (low, medium, high)
 - Filter by calorie level (low, medium, high)
-- Support dietary restrictions (vegan, vegetarian, gluten-free)
+- Support dietary preferences (vegan, vegetarian, gluten-free)
 - Select taste preferences (spicy, sweet, sour, savory)
 - View suggested meals in a table format
 - Add meals to a favorites list
+- Prevent duplicate favorites with user feedback
 - Save and load favorite meals using Java serialization
-- Meal data stored in a MySQL database and accessed via JDBC
-- In-memory fallback dataset if database is not available
-- Unit tests implemented using JUnit 5
+- Meal data accessed via JDBC
+- Automatic in-memory fallback dataset if the database is not available
 
 ---
 
@@ -29,50 +29,63 @@ The project demonstrates the use of core Java concepts, Java Swing for graphical
 
 ```
 src/
-├── ui/            # Java Swing UI (MainFrame)
-├── model/         # Domain models and enums (Meal, Category, etc.)
-├── data/          # Data access (JDBC and fallback dataset)
-├── service/       # Recommendation logic
-├── persistence/   # Favorites serialization
-└── test/          # JUnit tests
+└── main/
+    └── java/
+        ├── ui/            # Java Swing UI (MainFrame)
+        ├── model/         # Domain models and enums (Meal, Category, etc.)
+        ├── data/          # JDBC access and fallback dataset
+        ├── service/       # Recommendation logic
+        └── persistence/   # Favorites serialization
 ```
 
 ---
 
-## 🗄️ Database
+## 🗄️ Database & Data Handling
 
-- MySQL is used to store meal data.
-- Data is accessed using JDBC.
-- Enum values are stored as strings in the database.
-- If the database is not available, the application automatically falls back to an in-memory dataset to ensure the program runs correctly.
+- The application uses SQLite as a lightweight, file-based database.
+- Data access is implemented using JDBC.
+- The database schema is created programmatically if it does not exist.
+- Initial sample data (seed data) is inserted automatically when the database is empty.
+- Enum values (category, budget level, calorie level, etc.) are stored as strings.
+- If the database cannot be accessed, the system automatically switches to an in-memory dataset to keep the application functional during demos.
 
 ---
 
 ## 🛠️ Technologies Used
 
-- Java
+- Java (JDK 19)
 - Java Swing
-- JDBC (MySQL)
-- MySQL Workbench
-- JUnit 5
+- JDBC
+- SQLite
+- JUnit 5 (for unit testing)
 - IntelliJ IDEA
+- Maven
 
 ---
 
 ## ▶️ How to Run
 
-1. Make sure MySQL Server is running.
-2. Create the database and `meals` table in MySQL.
-3. Update database connection details in `DbConfig.java`.
-4. Run the `MainFrame` class.
-5. Select preferences and click **Suggest Meals**.
+1. Open the project in IntelliJ IDEA.
+2. Make sure dependencies are resolved (Maven).
+3. Run the `MainFrame` class.
+4. The database file will be created automatically if it does not exist.
+5. Select your preferences and click **Suggest Meals**.
 
 ---
 
 ## 🧪 Testing
 
-- Core recommendation logic is tested using JUnit 5.
-- Tests verify filtering by budget, dietary restrictions, taste preferences, preparation time, and eating place.
+- Unit tests were implemented using JUnit 5 to verify the core recommendation logic.
+- Test scenarios include:
+  - Budget filtering
+  - Dietary restrictions
+  - Taste preferences
+  - Preparation time constraints
+  - Eating place filtering
+- Tests focus on validating business logic independently from the UI.
 
+## 📌 Notes
 
-
+- The project prioritizes clarity, readability, and maintainability.
+- The architecture is intentionally kept simple to match the scope of the course.
+- The application is designed to run without external setup, making it suitable for in-class demonstrations.
