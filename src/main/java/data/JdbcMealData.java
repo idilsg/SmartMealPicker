@@ -10,7 +10,7 @@ public class JdbcMealData {
     public static List<Meal> loadMealsFromDb() throws SQLException {
         List<Meal> meals = new ArrayList<>();
 
-        try (Connection conn = DriverManager.getConnection(DbConfig.DB_URL, DbConfig.USER, DbConfig.PASS);
+        try (Connection conn = DriverManager.getConnection(DbConfig.DB_URL);
              PreparedStatement ps = conn.prepareStatement("SELECT * FROM meals");
              ResultSet rs = ps.executeQuery()) {
 

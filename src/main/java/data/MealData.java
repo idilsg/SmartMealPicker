@@ -18,7 +18,7 @@ public class MealData {
         List<Meal> meals = new ArrayList<>();
 
         meals.add(new Meal(
-                "Menemen",
+                "Menemen (fallback data)",
                 Category.MAIN_DISH,
                 Place.HOME,
                 15,

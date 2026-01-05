@@ -4,36 +4,26 @@ import java.sql.*;
 
 public class DbInitializer {
     public static void init() {
-        createDatabaseIfMissing();
         createTableIfMissing();
         seedIfEmpty();
     }
 
-    private static void createDatabaseIfMissing() {
-        String sql = "CREATE DATABASE IF NOT EXISTS mealdb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
-        try (Connection conn = DriverManager.getConnection(DbConfig.HOST_URL, DbConfig.USER, DbConfig.PASS);
-             Statement st = conn.createStatement()) {
-            st.executeUpdate(sql);
-        } catch (SQLException e) {
-            throw new RuntimeException("DB create failed", e);
-        }
-    }
-
     private static void createTableIfMissing() {
         String sql = """
-                CREATE TABLE IF NOT EXISTS meals (
-                  id INT AUTO_INCREMENT PRIMARY KEY,
-                  name VARCHAR(120) NOT NULL,
-                  category VARCHAR(30) NOT NULL,
-                  place VARCHAR(30) NOT NULL,
-                  prep_minutes INT NOT NULL,
-                  budget_level VARCHAR(30) NOT NULL,
-                  calorie_level VARCHAR(30) NOT NULL,
-                  diet_tags VARCHAR(200),
-                  taste_tags VARCHAR(200)
-                )
-                """;
-        try (Connection conn = DriverManager.getConnection(DbConfig.DB_URL, DbConfig.USER, DbConfig.PASS);
+                    CREATE TABLE IF NOT EXISTS meals (
+                      id INTEGER PRIMARY KEY AUTOINCREMENT,
+                      name TEXT NOT NULL,
+                      category TEXT NOT NULL,
+                      place TEXT NOT NULL,
+                      prep_minutes INTEGER NOT NULL,
+                      budget_level TEXT NOT NULL,
+                      calorie_level TEXT NOT NULL,
+                      diet_tags TEXT,
+                      taste_tags TEXT
+                    )
+                    """;
+
+        try (Connection conn = DriverManager.getConnection(DbConfig.DB_URL);
              Statement st = conn.createStatement()) {
             st.executeUpdate(sql);
         } catch (SQLException e) {
@@ -43,7 +33,7 @@ public class DbInitializer {
 
     private static void seedIfEmpty() {
         String countSql = "SELECT COUNT(*) FROM meals";
-        try (Connection conn = DriverManager.getConnection(DbConfig.DB_URL, DbConfig.USER, DbConfig.PASS);
+        try (Connection conn = DriverManager.getConnection(DbConfig.DB_URL);
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(countSql)) {
 
